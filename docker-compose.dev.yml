@@ -1,0 +1,46 @@
+version: "3.7"
+
+services:
+  backend:
+    container_name: backend
+    build: ./backend
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    stdin_open: true
+    tty: true
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on: 
+      - db
+  db:
+    container_name: database
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./postgres/.env
+  frontend:
+    container_name: frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.local
+    stdin_open: true
+    volumes:
+      - ./frontend:/app
+      # One-way volume to use node_modules from inside image
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    command: npm start
+
+volumes:
+  postgres_data:
+  django_static_volume:
+  react_static_volume:
